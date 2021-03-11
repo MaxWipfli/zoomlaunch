@@ -30,22 +30,22 @@ zoomlaunch.py launch "https://www.zoom.us/j/1234567890?pwd=abcdefghijklmnop"
 Just add/move the `zoomlaunch.py` script into your `PATH` and make sure its executable. Of course, you need Python 3 for this to work.
 
 ### Data File
-**zoomlaunch** stores meeting data in a JSON file. An example JSON file is available (`zoomlaunch.json`). The path to the file can be specified in the beginning of the `zoomlaunch.py` script like this:
-```py
-DATA_FILE = '/foo/bar/zoomlaunch.json'
-```
-**Format:**
-```json
+**zoomlaunch** stores meeting data in a JSON file. An example JSON file is available (`zoomlaunch.json`). The format is as follows:
+```jsonc
 [
   {
-    "name": "Meetingname as string",
-    "id": "Meetingid as string",        # Spaces dont matter
-    "password": "Password as string",   # Encoded password for usage in urls
-    "time": [3, "hh:mm"]                # Where 3 equals the weekday (1 = Monday)
+    "name": "Meeting 1",         // only used for display
+    "id": "123 456 7890",        // spaces are ignored
+    "password": "abcdefghijkl",
+    "time": [3, "hh:mm"]         // 3 is the weekday (monday: 1)
   }
 ]
 ```
-Use an absolute path so it accesses the same file independet of where it is called from.
+
+The path to the file can be specified in the beginning of the `zoomlaunch.py` script like this (either absolute (preferred) or relative to script directory):
+```py
+DATA_FILE = '/foo/bar/zoomlaunch.json'
+```
 
 ## URL Scheme Documentation
 The URL scheme had been documented on https://marketplace.zoom.us/docs/client-url-schemes. However, since external support has been discontinued, the documentation has been removed.
