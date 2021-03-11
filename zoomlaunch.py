@@ -33,6 +33,7 @@ def list_meetings():
 
 
 def show_meeting(index):
+	meetings = get_meetings()
 	if index <= 0 or index > len(meetings):
 		error(f'\'{index}\' is not a valid index')
 		return
@@ -67,7 +68,7 @@ def format_meeting_id(meeting_id, pad=False):
 
 # generates zoom.us join url
 def get_join_url(meeting_id, password = None):
-	url = f'https://www.zoom.us/j/{meeting_id}'
+	url = f"https://www.zoom.us/j/{meeting_id.replace(' ', '')}"
 	if password:
 		url += f'?pwd={password}'
 	return url
@@ -111,13 +112,14 @@ if __name__ == "__main__":
 	launch_parser = subparsers.add_parser('launch', help='launch a meeting')
 	launch_parser.add_argument('id', help='index, meeting id or url')
 	launch_parser.add_argument('password', help='password (not needed if used with url)', nargs='?')
+	next_parser = subparsers.add_parser('next', help='launch next meeting (+/- 15min)')
 	args = parser.parse_args()
 
 	if not args.command or args.command == 'show':
 		if 'index' not in args or not args.index:
 			list_meetings()
 		else:
-			show_meeting(args.index)
+			show_meeting(int(args.index))
 	elif args.command == 'launch':
 		arg = args.id
 		arg_type = None
@@ -146,5 +148,4 @@ if __name__ == "__main__":
 				error(f'\'{arg}\' is not valid')
 			meeting_id, meeting_password = data
 
-		# launch_meeting(meeting_id, meeting_password)
-		print(f'launch_meeting({meeting_id}, {meeting_password})')
+		launch_meeting(meeting_id, meeting_password)
