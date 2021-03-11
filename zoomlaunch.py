@@ -69,7 +69,7 @@ def format_meeting_id(meeting_id, pad=False):
 
 # generates zoom.us join url
 def get_join_url(meeting_id, password = None):
-	url = f"https://www.zoom.us/j/{meeting_id.replace(' ', '')}"
+	url = f'https://www.zoom.us/j/{meeting_id.replace(" ", "")}'
 	if password:
 		url += f'?pwd={password}'
 	return url
@@ -104,7 +104,7 @@ def error(message):
 	exit(2)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 	os.chdir(sys.path[0])  # if program is run from another folder
 	# parsing arguments
 	parser = argparse.ArgumentParser(description='launches Zoom meetings and stores meeting ids')
@@ -156,10 +156,10 @@ if __name__ == "__main__":
 		now = datetime.datetime.now()
 		meetings = get_meetings()
 		for meeting in meetings:
-			if "time" in meeting:
-				meetingstart = [int(i) for i in meeting["time"][1].split(':')]
+			if 'time' in meeting:
+				meetingstart = [int(i) for i in meeting['time'][1].split(':')]
 				diff = datetime.timedelta(hours=now.time().hour, minutes=now.time().minute) - \
 					   datetime.timedelta(hours=meetingstart[0], minutes=meetingstart[1])
-				if now.weekday()+1 == meeting["time"][0] and abs(diff.total_seconds())/60 <= 20:
+				if now.isoweekday() == meeting['time'][0] and abs(diff.total_seconds()) / 60 <= 20:
 					launch_meeting(meeting['id'], meeting['password'] if 'password' in meeting else None)
-		print("No meetings found!")
+		error('No scheduled meetings right now (+/- 20 min)')
