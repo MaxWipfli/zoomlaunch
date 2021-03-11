@@ -4,8 +4,6 @@
 
 Meetings can either be launched by directly specifying a meeting id (and optional password), or by choosing a meeting out of a stored list.
 
-**Important**: Because this script relies on `xdg-open`, it only works on Linux operating systems as of now.
-
 **Important**: Please read the disclaimer at the end of this README before using the software.
 
 ## Usage
@@ -27,7 +25,7 @@ zoomlaunch.py launch "https://www.zoom.us/j/1234567890?pwd=abcdefghijklmnop"
 ```
 
 ## Installation
-Just add/move the `zoomlaunch.py` script into your `PATH` and make sure its executable. Of course, you need Python 3 for this to work.
+**zoomlaunch** is compatible with Linux, Mac and Windows (untested). For Linux and Mac, just add/move the `zoomlaunch.py` script into your `PATH` and make sure its executable. Of course, you need Python 3 for this to work.
 
 ### Data File
 **zoomlaunch** stores meeting data in a JSON file. An example JSON file is available (`zoomlaunch.json`). The format is as follows:

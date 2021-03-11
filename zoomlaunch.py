@@ -6,6 +6,7 @@ import sys
 import os.path
 import re
 import datetime
+import platform
 
 DATA_FILE = 'zoomlaunch.json'
 
@@ -91,8 +92,17 @@ def launch_meeting(meeting_id, password = None):
 	if password:
 		url += f'&pwd={password}'
 
+	if platform.system() == 'Windows':
+		command = 'start'
+	elif platform.system() == 'Darwin': # Mac
+		command = 'open'
+	elif platform.system() == 'Linux':
+		command = 'xdg-open'
+	else:
+		error('This operating system is not supported')
+
 	try:
-		sp.run(['xdg-open', url], check=True, stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+		sp.run([command, url], check=True, stdout=sp.DEVNULL, stderr=sp.DEVNULL)
 	except sp.CalledProcessError:
 		error(f'Cannot launch \'xdg-open\'')
 	exit()
