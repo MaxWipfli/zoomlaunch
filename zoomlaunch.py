@@ -28,7 +28,8 @@ def list_meetings():
     meetings = get_meetings()
     width = len(str(len(meetings) + 1))
     for index, meeting in enumerate(meetings):
-        out_str = ('{:>' + str(width + 2) + '}').format(f'[{index + 1}]') # index of this entry
+        # index of this entry
+        out_str = ('{:>' + str(width + 2) + '}').format(f'[{index + 1}]')
         out_str += '  ' + format_meeting_id(meeting["id"], True)
         out_str += '  ' + meeting["name"]
         print(out_str)
@@ -41,12 +42,31 @@ def show_meeting(index):
         return
 
     meeting = meetings[index - 1]
-    join_url = get_join_url(meeting['id'], meeting['password'] if 'password' in meeting else None)
+    password = meeting['password'] if 'password' in meeting else None
+    join_url = get_join_url(meeting['id'], password)
     print(f'Index:       {index}')
     print(f'Name:        {meeting["name"]}')
     print(f'Meeting ID:  {format_meeting_id(meeting["id"])}')
-    print(f'Password:    {meeting["password"] if "password" in meeting else ""}')
+    print(f'Password:    {password or ""}')
     print(f'Join URL:    {join_url}')
+
+
+# returns next meeting (+/- 20 min) or None
+def get_next_meeting():
+    now = datetime.datetime.now()
+    meetings = get_meetings()
+    for meeting in meetings:
+        if 'time' in meeting:
+            meeting_weekday = meeting['time'][0]
+            meeting_hour, meeting_minute = \
+                [int(i) for i in meeting['time'][1].split(':')]
+
+            then = now.replace(hour=meeting_hour, minute=meeting_minute)
+            delta_minutes = (now - then).total_seconds() / 60
+
+            if meeting_weekday == now.isoweekday() and delta_minutes <= 20:
+                return meeting
+    return None
 
 
 # returns formatted meeting id
@@ -59,17 +79,13 @@ def format_meeting_id(meeting_id, pad=False):
     elif id_len == 11:
         return meeting_id[0:3] + ' ' + meeting_id[3:7] + ' ' + meeting_id[7:11]
     else:
-        # pad with zeros up to 10 digits length
-        meeting_id.zfill(10)
-        return (' ' if pad else '') + meeting_id[0:3] + ' ' + meeting_id[3:6] + ' ' + meeting_id[6:10]
-
-    if type(meeting_id) is str:
-        meeting_id = int(meeting_id.replace(' ', ''))
-    return '{:03} {:03} {:04}'.format(meeting_id // (10 ** 7), (meeting_id % 10 ** 7) // 10 ** 4, meeting_id % (10 ** 4))
+        meeting_id.zfill(10)  # pad with zeros up to 10 digits length
+        return (' ' if pad else '') + meeting_id[0:3] \
+            + ' ' + meeting_id[3:6] + ' ' + meeting_id[6:10]
 
 
 # generates zoom.us join url
-def get_join_url(meeting_id, password = None):
+def get_join_url(meeting_id, password=None):
     url = f'https://www.zoom.us/j/{meeting_id.replace(" ", "")}'
     if password:
         url += f'?pwd={password}'
@@ -79,14 +95,14 @@ def get_join_url(meeting_id, password = None):
 # parses zoom.us join url
 # returns tuple with (id, password=None)
 def parse_join_url(url):
-    regex = '.*zoom\.us\/j\/(\d+)(?:\/?\?.*?pwd=(.*?)(?:$|&))?'
+    regex = r'.*zoom\.us\/j\/(\d+)(?:\/?\?.*?pwd=(.*?)(?:$|&))?'
     matches = re.match(regex, url)
     if not matches:
         return None
     return matches[1], matches[2] if matches[2] else None
 
 
-def launch_meeting(meeting_id, password = None):
+def launch_meeting(meeting_id, password=None):
     meeting_id = str(meeting_id).replace(' ', '')
     url = f'zoommtg://zoom.us/join?confno={meeting_id}'
     if password:
@@ -94,7 +110,7 @@ def launch_meeting(meeting_id, password = None):
 
     if platform.system() == 'Windows':
         command = 'start'
-    elif platform.system() == 'Darwin': # Mac
+    elif platform.system() == 'Darwin':  # Mac
         command = 'open'
     elif platform.system() == 'Linux':
         command = 'xdg-open'
@@ -102,7 +118,8 @@ def launch_meeting(meeting_id, password = None):
         error('This operating system is not supported')
 
     try:
-        sp.run([command, url], check=True, stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+        sp.run([command, url], check=True,
+               stdout=sp.DEVNULL, stderr=sp.DEVNULL)
     except sp.CalledProcessError:
         error(f'Cannot launch \'xdg-open\'')
     exit()
@@ -115,16 +132,23 @@ def error(message):
 
 
 if __name__ == '__main__':
-    os.chdir(sys.path[0])  # if program is run from another folder
+    # if program is run from another folder
+    os.chdir(sys.path[0])
+
     # parsing arguments
-    parser = argparse.ArgumentParser(description='launches Zoom meetings and stores meeting ids')
+    parser = argparse.ArgumentParser(
+        description='launches Zoom meetings and stores meeting ids')
     subparsers = parser.add_subparsers(dest='command')
-    show_parser = subparsers.add_parser('show', help='show/list stored meeting(s)')
+    show_parser = subparsers.add_parser('show',
+                                        help='show/list stored meeting(s)')
     show_parser.add_argument('index', help='meeting index to show', nargs='?')
     launch_parser = subparsers.add_parser('launch', help='launch a meeting')
     launch_parser.add_argument('id', help='index, meeting id or url')
-    launch_parser.add_argument('password', help='password (not needed if used with url)', nargs='?')
-    next_parser = subparsers.add_parser('next', help='launch next meeting (+/- 20min)')
+    launch_parser.add_argument('password',
+                               help='password (not needed if used with url)',
+                               nargs='?')
+    next_parser = subparsers.add_parser('next',
+                                        help='launch next meeting (+/- 20min)')
     args = parser.parse_args()
 
     if not args.command or args.command == 'show':
@@ -144,13 +168,14 @@ if __name__ == '__main__':
                 arg_type = 'index'
             else:
                 arg_type = 'id'
-        except:
+        except ValueError:
             arg_type = 'url'
 
         if arg_type == 'index':
             meeting = get_meetings()[int_arg - 1]
             meeting_id = meeting['id']
-            meeting_password = meeting['password'] if 'password' in meeting else None
+            meeting_password = \
+                meeting['password'] if 'password' in meeting else None
         elif arg_type == 'id':
             meeting_id = int_arg
             meeting_password = args.password
@@ -163,13 +188,9 @@ if __name__ == '__main__':
         launch_meeting(meeting_id, meeting_password)
 
     elif args.command == 'next':
-        now = datetime.datetime.now()
-        meetings = get_meetings()
-        for meeting in meetings:
-            if 'time' in meeting:
-                meetingstart = [int(i) for i in meeting['time'][1].split(':')]
-                diff = datetime.timedelta(hours=now.time().hour, minutes=now.time().minute) - \
-                       datetime.timedelta(hours=meetingstart[0], minutes=meetingstart[1])
-                if now.isoweekday() == meeting['time'][0] and abs(diff.total_seconds()) / 60 <= 20:
-                    launch_meeting(meeting['id'], meeting['password'] if 'password' in meeting else None)
-        error('No scheduled meetings right now (+/- 20 min)')
+        meeting = get_next_meeting()
+        if not meeting:
+            error('No scheduled meetings right now (+/- 20 min)')
+        launch_meeting(
+            meeting['id'],
+            meeting['password'] if 'password' in meeting else None)
