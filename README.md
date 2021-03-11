@@ -34,6 +34,17 @@ Just add/move the `zoomlaunch.py` script into your `PATH` and make sure its exec
 ```py
 DATA_FILE = '/foo/bar/zoomlaunch.json'
 ```
+**Format:**
+```json
+[
+  {
+    "name": "Meetingname as string",
+    "id": "Meetingid as string",        # Spaces dont matter
+    "password": "Password as string",   # Encoded password for usage in urls
+    "time": [3, "hh:mm"]                # Where 3 equals the weekday (1 = Monday)
+  }
+]
+```
 Use an absolute path so it accesses the same file independet of where it is called from.
 
 ## URL Scheme Documentation

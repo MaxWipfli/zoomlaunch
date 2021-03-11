@@ -7,5 +7,10 @@
         "name": "Meeting 2",
         "id": "987654321",
         "password": "oMACRU4KdxBjkuQjs6zF8woJRfZAnzvT"
+    },
+    {
+        "name": "Meeting 3",
+        "id": "111 2222 3333",
+        "time": [3, "11:30"]
     }
 ]
