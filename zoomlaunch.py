@@ -5,6 +5,7 @@ import subprocess as sp
 import sys
 import os.path
 import re
+import datetime
 
 DATA_FILE = 'zoomlaunch.json'
 
@@ -94,6 +95,7 @@ def launch_meeting(meeting_id, password = None):
 		sp.run(['xdg-open', url], check=True, stdout=sp.DEVNULL, stderr=sp.DEVNULL)
 	except sp.CalledProcessError:
 		error(f'Cannot launch \'xdg-open\'')
+	exit()
 
 
 # displays error to STDERR and exits
@@ -112,7 +114,7 @@ if __name__ == "__main__":
 	launch_parser = subparsers.add_parser('launch', help='launch a meeting')
 	launch_parser.add_argument('id', help='index, meeting id or url')
 	launch_parser.add_argument('password', help='password (not needed if used with url)', nargs='?')
-	next_parser = subparsers.add_parser('next', help='launch next meeting (+/- 15min)')
+	next_parser = subparsers.add_parser('next', help='launch next meeting (+/- 20min)')
 	args = parser.parse_args()
 
 	if not args.command or args.command == 'show':
@@ -149,3 +151,15 @@ if __name__ == "__main__":
 			meeting_id, meeting_password = data
 
 		launch_meeting(meeting_id, meeting_password)
+
+	elif args.command == 'next':
+		now = datetime.datetime.now()
+		meetings = get_meetings()
+		for meeting in meetings:
+			if "time" in meeting:
+				meetingstart = [int(i) for i in meeting["time"][1].split(':')]
+				diff = datetime.timedelta(hours=now.time().hour, minutes=now.time().minute) - \
+					   datetime.timedelta(hours=meetingstart[0], minutes=meetingstart[1])
+				if now.weekday()+1 == meeting["time"][0] and abs(diff.total_seconds())/60 <= 20:
+					launch_meeting(meeting['id'], meeting['password'] if 'password' in meeting else None)
+		print("No meetings found!")
