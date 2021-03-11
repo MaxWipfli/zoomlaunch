@@ -8,6 +8,7 @@ import re
 
 DATA_FILE = 'zoomlaunch.json'
 
+
 # get meetings from json file
 def get_meetings():
 	if os.path.isfile(DATA_FILE):
@@ -20,6 +21,7 @@ def get_meetings():
 	else:
 		return []
 
+
 def list_meetings():
 	meetings = get_meetings()
 	width = len(str(len(meetings) + 1))
@@ -28,6 +30,7 @@ def list_meetings():
 		out_str += '  ' + format_meeting_id(meeting["id"], True)
 		out_str += '  ' + meeting["name"]
 		print(out_str)
+
 
 def show_meeting(index):
 	if index <= 0 or index > len(meetings):
@@ -41,6 +44,7 @@ def show_meeting(index):
 	print(f'Meeting ID:  {format_meeting_id(meeting["id"])}')
 	print(f'Password:    {meeting["password"] if "password" in meeting else ""}')
 	print(f'Join URL:    {join_url}')
+
 
 # returns formatted meeting id
 def format_meeting_id(meeting_id, pad=False):
@@ -60,12 +64,14 @@ def format_meeting_id(meeting_id, pad=False):
 		meeting_id = int(meeting_id.replace(' ', ''))
 	return '{:03} {:03} {:04}'.format(meeting_id // (10 ** 7), (meeting_id % 10 ** 7) // 10 ** 4, meeting_id % (10 ** 4))
 
+
 # generates zoom.us join url
 def get_join_url(meeting_id, password = None):
 	url = f'https://www.zoom.us/j/{meeting_id}'
 	if password:
 		url += f'?pwd={password}'
 	return url
+
 
 # parses zoom.us join url
 # returns tuple with (id, password=None)
@@ -75,6 +81,7 @@ def parse_join_url(url):
 	if not matches:
 		return None
 	return matches[1], matches[2] if matches[2] else None
+
 
 def launch_meeting(meeting_id, password = None):
 	meeting_id = str(meeting_id).replace(' ', '')
@@ -87,53 +94,57 @@ def launch_meeting(meeting_id, password = None):
 	except sp.CalledProcessError:
 		error(f'Cannot launch \'xdg-open\'')
 
+
 # displays error to STDERR and exits
 def error(message):
 	print('Error: ' + message, file=sys.stderr)
 	exit(2)
 
-# parsing arguments
-parser = argparse.ArgumentParser(description='launches Zoom meetings and stores meeting ids')
-subparsers = parser.add_subparsers(dest='command')
-show_parser = subparsers.add_parser('show', help='show/list stored meeting(s)')
-show_parser.add_argument('index', help='meeting index to show', nargs='?')
-launch_parser = subparsers.add_parser('launch', help='launch a meeting')
-launch_parser.add_argument('id', help='index, meeting id or url')
-launch_parser.add_argument('password', help='password (not needed if used with url)', nargs='?')
-args = parser.parse_args()
 
-if not args.command or args.command == 'show':
-	if 'index' not in args or not args.index:
-		list_meetings()
-	else:
-		show_meeting(args.index)
-elif args.command == 'launch':
-	arg = args.id
-	arg_type = None
-	meetings = get_meetings()
+if __name__ == "__main__":
+	os.chdir(sys.path[0])  # if program is run from another folder
+	# parsing arguments
+	parser = argparse.ArgumentParser(description='launches Zoom meetings and stores meeting ids')
+	subparsers = parser.add_subparsers(dest='command')
+	show_parser = subparsers.add_parser('show', help='show/list stored meeting(s)')
+	show_parser.add_argument('index', help='meeting index to show', nargs='?')
+	launch_parser = subparsers.add_parser('launch', help='launch a meeting')
+	launch_parser.add_argument('id', help='index, meeting id or url')
+	launch_parser.add_argument('password', help='password (not needed if used with url)', nargs='?')
+	args = parser.parse_args()
 
-	# detect if index, id or url
-	try:
-		int_arg = int(arg.replace(' ', ''))
-		if int_arg > 0 and int_arg <= len(meetings):
-			arg_type = 'index'
+	if not args.command or args.command == 'show':
+		if 'index' not in args or not args.index:
+			list_meetings()
 		else:
-			arg_type = 'id'
-	except:
-		arg_type = 'url'
+			show_meeting(args.index)
+	elif args.command == 'launch':
+		arg = args.id
+		arg_type = None
+		meetings = get_meetings()
 
-	if arg_type == 'index':
-		meeting = get_meetings()[int_arg - 1]
-		meeting_id = meeting['id']
-		meeting_password = meeting['password'] if 'password' in meeting else None
-	elif arg_type == 'id':
-		meeting_id = int_arg
-		meeting_password = args.password
-	elif arg_type == 'url':
-		data = parse_join_url(arg)
-		if not data:
-			error(f'\'{arg}\' is not valid')
-		meeting_id, meeting_password = data
+		# detect if index, id or url
+		try:
+			int_arg = int(arg.replace(' ', ''))
+			if 0 < int_arg <= len(meetings):
+				arg_type = 'index'
+			else:
+				arg_type = 'id'
+		except:
+			arg_type = 'url'
 
-	# launch_meeting(meeting_id, meeting_password)
-	print(f'launch_meeting({meeting_id}, {meeting_password})')
+		if arg_type == 'index':
+			meeting = get_meetings()[int_arg - 1]
+			meeting_id = meeting['id']
+			meeting_password = meeting['password'] if 'password' in meeting else None
+		elif arg_type == 'id':
+			meeting_id = int_arg
+			meeting_password = args.password
+		elif arg_type == 'url':
+			data = parse_join_url(arg)
+			if not data:
+				error(f'\'{arg}\' is not valid')
+			meeting_id, meeting_password = data
+
+		# launch_meeting(meeting_id, meeting_password)
+		print(f'launch_meeting({meeting_id}, {meeting_password})')
