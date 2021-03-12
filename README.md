@@ -22,6 +22,9 @@ zoomlaunch.py launch "123 456 7890"
 zoomlaunch.py launch "987654321" "abcdefghijklmnop"
 # launch meeting with zoom url
 zoomlaunch.py launch "https://www.zoom.us/j/1234567890?pwd=abcdefghijklmnop"
+
+# launch next meeting according to "time" property
+zoomlaunch.py next
 ```
 
 ## Installation
@@ -34,8 +37,8 @@ zoomlaunch.py launch "https://www.zoom.us/j/1234567890?pwd=abcdefghijklmnop"
   {
     "name": "Meeting 1",         // only used for display
     "id": "123 456 7890",        // spaces are ignored
-    "password": "abcdefghijkl",
-    "time": [3, "hh:mm"]         // 3 is the weekday (monday: 1)
+    "password": "abcdefghijkl",  // optional
+    "time": [3, "hh:mm"]         // optional, 3 is the weekday (monday: 1)
   }
 ]
 ```
