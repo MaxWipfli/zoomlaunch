@@ -108,17 +108,18 @@ def launch_meeting(meeting_id, password=None):
     if password:
         url += f'&pwd={password}'
 
-    if platform.system() == 'Windows':
-        command = 'start'
+    if platform.system() == 'Windows' or \
+            'Microsoft' in platform.uname().release:  # detect WSL
+        args = ['cmd.exe', '/c', 'start ' + url]
     elif platform.system() == 'Darwin':  # Mac
-        command = 'open'
+        args = ['open', url]
     elif platform.system() == 'Linux':
-        command = 'xdg-open'
+        args = ['xdg-open', url]
     else:
         error('This operating system is not supported')
 
     try:
-        sp.run([command, url], check=True,
+        sp.run(args, check=True,
                stdout=sp.DEVNULL, stderr=sp.DEVNULL)
     except sp.CalledProcessError:
         error(f'Cannot launch \'xdg-open\'')
