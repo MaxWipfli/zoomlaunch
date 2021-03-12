@@ -110,7 +110,7 @@ def launch_meeting(meeting_id, password=None):
 
     if platform.system() == 'Windows' or \
             'Microsoft' in platform.uname().release:  # detect WSL
-        args = ['cmd.exe', '/c', 'start ' + url]
+        args = ['cmd.exe', '/c', 'start ' + url.replace('^&', '&')]  # escape &
     elif platform.system() == 'Darwin':  # Mac
         args = ['open', url]
     elif platform.system() == 'Linux':
@@ -121,8 +121,8 @@ def launch_meeting(meeting_id, password=None):
     try:
         sp.run(args, check=True,
                stdout=sp.DEVNULL, stderr=sp.DEVNULL)
-    except sp.CalledProcessError:
-        error(f'Cannot launch \'xdg-open\'')
+    except (sp.CalledProcessError, FileNotFoundError):
+        error(f'Cannot open meeting URL with "{" ".join(args)}"')
     exit()
 
 
