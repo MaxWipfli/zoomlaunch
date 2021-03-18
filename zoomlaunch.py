@@ -62,7 +62,7 @@ def get_next_meeting():
                 [int(i) for i in meeting['time'][1].split(':')]
 
             then = now.replace(hour=meeting_hour, minute=meeting_minute)
-            delta_minutes = (now - then).total_seconds() / 60
+            delta_minutes = abs((now - then).total_seconds() / 60)
 
             if meeting_weekday == now.isoweekday() and delta_minutes <= 20:
                 return meeting
