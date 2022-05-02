@@ -8,17 +8,17 @@ import re
 import datetime
 import platform
 
-DATA_FILE = 'zoomlaunch.json'
+CONFIG_FILE = 'zoomlaunch.json'
 
 
 # get meetings from json file
 def get_meetings():
-    if os.path.isfile(DATA_FILE):
-        with open(DATA_FILE, 'r') as file:
+    if os.path.isfile(CONFIG_FILE):
+        with open(CONFIG_FILE, 'r') as file:
             try:
                 meetings = json.load(file)
             except json.JSONDecodeError:
-                error(f'\'{DATA_FILE}\' is not a valid JSON file.')
+                error(f'\'{CONFIG_FILE}\' is not a valid JSON file.')
         return meetings
     else:
         return []

@@ -45,7 +45,7 @@ zoomlaunch.py next
 
 The path to the file can be specified in the beginning of the `zoomlaunch.py` script like this (either absolute (preferred) or relative to script directory):
 ```py
-DATA_FILE = '/foo/bar/zoomlaunch.json'
+CONFIG_FILE = '/foo/bar/zoomlaunch.json'
 ```
 
 ## URL Scheme Documentation
