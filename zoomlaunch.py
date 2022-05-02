@@ -33,15 +33,14 @@ def get_config_file():
 # get meetings from json file
 def get_meetings():
     config_file = get_config_file()
-    if config_file.is_file():
-        with config_file.open('r') as file:
-            try:
-                meetings = json.load(file)
-            except json.JSONDecodeError:
-                error(f'\'{CONFIG_FILE}\' is not a valid JSON file.')
-        return meetings
-    else:
+    if not config_file.is_file():
         return []
+    with config_file.open('r') as file:
+        try:
+            meetings = json.load(file)
+        except json.JSONDecodeError:
+            error(f'\'{CONFIG_FILE}\' is not a valid JSON file.')
+    return meetings
 
 
 def list_meetings():
@@ -143,13 +142,12 @@ def launch_meeting(meeting_id, password=None):
                stdout=sp.DEVNULL, stderr=sp.DEVNULL)
     except (sp.CalledProcessError, FileNotFoundError):
         error(f'Cannot open meeting URL with "{" ".join(args)}"')
-    exit()
 
 
 # displays error to STDERR and exits
 def error(message):
     print('Error: ' + message, file=sys.stderr)
-    exit(2)
+    sys.exit(2)
 
 
 if __name__ == '__main__':
@@ -207,7 +205,6 @@ if __name__ == '__main__':
             meeting_id, meeting_password = data
 
         launch_meeting(meeting_id, meeting_password)
-
     elif args.command == 'next':
         meeting = get_next_meeting()
         if not meeting:
