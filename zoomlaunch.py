@@ -3,18 +3,38 @@ import argparse
 import json
 import subprocess as sp
 import sys
-import os.path
+import os
 import re
 import datetime
 import platform
+from pathlib import Path
 
+# The (absolute) path of the config file. Set CONFIG_FILE = None to use the
+# default config directory (only supported on Linux systems).
 CONFIG_FILE = 'zoomlaunch.json'
+# CONFIG_FILE = None
+
+
+# Returns pathlib.Path object of the current config file. This is as specified
+# by the CONFIG_FILE constant, or automatically chosen using XDG_CONFIG_HOME
+# (or ~/.config as fallback). The latter only works on Linux systems.
+def get_config_file():
+    if CONFIG_FILE:
+        return Path(CONFIG_FILE)
+    if not platform.system() == 'Linux' \
+        or 'Microsoft' in platform.uname().release: # detect WSL
+        error('Using the default config directory (meaning `CONFIG_FILE = None`)'
+              + ' is not supported for this operating system.')
+    env_var = os.getenv('XDG_CONFIG_HOME')
+    config_dir = Path(env_var) if env_var else Path.home() / '.config'
+    return config_dir / 'zoomlaunch.json'
 
 
 # get meetings from json file
 def get_meetings():
-    if os.path.isfile(CONFIG_FILE):
-        with open(CONFIG_FILE, 'r') as file:
+    config_file = get_config_file()
+    if config_file.is_file():
+        with config_file.open('r') as file:
             try:
                 meetings = json.load(file)
             except json.JSONDecodeError:
